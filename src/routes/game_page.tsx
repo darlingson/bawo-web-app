@@ -24,6 +24,11 @@ export default function GamePage() {
     const newBoard = [...gameState.board]
     const seeds = newBoard[row][col]
     console.log(`Picked up ${seeds} seeds from pit at row ${row}, column ${col}`)
+    setGameState(prevState => ({
+      ...prevState,
+      board: newBoard,
+      seedsInHand: prevState.seedsInHand + seeds,
+    }))
   }
 
   return (
