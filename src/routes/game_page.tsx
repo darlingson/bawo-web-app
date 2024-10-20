@@ -1,50 +1,38 @@
 import { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
+import { GameState } from '@/interfaces/GameState';
+import { playerMove } from '@/gameEngine';
 
-type Player = 'Player 1' | 'Player 2'
-
-interface GameState {
-  board: number[][]
-  currentPlayer: Player
-  seedsInHand: number
-  pits: number[][] // New state to track individual pits
-}
 
 export default function GamePage() {
-  const initialBoard = Array(4).fill(null).map(() => Array(8).fill(2))
+  const initialBoard = Array(4).fill(null).map(() => Array(8).fill(2));
   const [gameState, setGameState] = useState<GameState>({
-    board: initialBoard,
-    currentPlayer: 'Player 1',
-    seedsInHand: 0,
-    pits: initialBoard, // Initialize pits with the same values as the board
-  })
+    pits: initialBoard,
+    currentPlayer: 0,
+    playerHand: 0,
+  });
 
   const handlePitClick = (row: number, col: number) => {
-    const newBoard = [...gameState.board]
-    const seeds = newBoard[row][col]
-    console.log(`Picked up ${seeds} seeds from pit at row ${row}, column ${col}`)
-    setGameState(prevState => ({
-      ...prevState,
-      board: newBoard,
-      seedsInHand: prevState.seedsInHand + seeds,
-    }))
-  }
+    const clickedPit = row * 8 + col;
+    const newGameState = playerMove(gameState, clickedPit);
+    setGameState(newGameState);
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-background to-secondary p-4">
       <h1 className="text-4xl font-bold mb-8 text-primary">Bawo Game</h1>
 
       <div className="mb-4 text-xl text-primary">
-        Current Player: <span className="font-bold">{gameState.currentPlayer}</span>
+        Current Player: <span className="font-bold">{`Player ${gameState.currentPlayer + 1}`}</span>
       </div>
 
       <div className="mb-8 text-xl text-primary">
-        Seeds in Hand: <span className="font-bold">{gameState.seedsInHand}</span>
+        Seeds in Hand: <span className="font-bold">{gameState.playerHand}</span>
       </div>
 
       <div className="grid grid-cols-8 gap-2 sm:gap-4 mb-8 bg-primary/20 p-4 sm:p-6 rounded-lg shadow-lg">
-        {gameState.board.map((row, rowIndex) =>
+        {gameState.pits.map((row, rowIndex) =>
           row.map((seeds, colIndex) => (
             <button
               key={`${rowIndex}-${colIndex}`}
@@ -69,5 +57,5 @@ export default function GamePage() {
         }
       `}</style>
     </div>
-  )
+  );
 }

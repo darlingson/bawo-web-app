@@ -1,100 +1,45 @@
-// // bawoGameEngine.ts
+// Define the game state types
+type GameState = {
+    pits: number[][]; // 2D array representing pits for both players
+    playerHand: number; // Number of seeds in the player's hand
+    currentPlayer: number; // Current player's identifier (0 or 1)
+};
 
-// // Define types for pits, players, and the overall game state
-// export interface Pit {
-//   seeds: number;
-// }
+// Function to handle player's move
+const playerMove = (state: GameState, clickedPit: number): GameState => {
+    const { pits, playerHand, currentPlayer } = state;
 
-// export interface Player {
-//   id: number;
-//   name: string;
-//   capturedSeeds: number;
-// }
+    // Check if clicked pit belongs to the current player (0 or 1)
+    const isOpponentPit = currentPlayer === 0 ? clickedPit > 7 : clickedPit < 8;
 
-// export interface GameState {
-//   board: Pit[][];
-//   currentPlayer: Player;
-//   players: Player[];
-//   status: "ongoing" | "finished";
-// }
+    if (isOpponentPit) {
+        // Check if the opponent's pit contains 2 or 3 seeds
+        const seedsInPit = pits[1 - currentPlayer][clickedPit % 8]; // Adjust for player index
 
-// // Initialize the board with 4 rows and 8 pits each (the number of seeds will depend on the game rules)
-// export const createInitialBoard = (): Pit[][] => {
-//   return Array.from(
-//     { length: 4 },
-//     () => Array.from({ length: 8 }, () => ({ seeds: 4 })) // Default: 4 seeds per pit (can adjust per rules)
-//   );
-// };
+        if (seedsInPit === 2 || seedsInPit === 3) {
+            // Capture the seeds
+            pits[1 - currentPlayer][clickedPit % 8] = 0; // Empty the opponent's pit
+            return {
+                ...state,
+                playerHand: playerHand + seedsInPit, // Add captured seeds to player's hand
+                pits: [...pits], // Return updated pits
+            };
+        }
+    }
 
-// // Initialize the game state
-// export const createInitialState = (): GameState => ({
-//   board: createInitialBoard(),
-//   currentPlayer: { id: 1, name: "Player 1", capturedSeeds: 0 },
-//   players: [
-//     { id: 1, name: "Player 1", capturedSeeds: 0 },
-//     { id: 2, name: "Player 2", capturedSeeds: 0 },
-//   ],
-//   status: "ongoing",
-// });
+    // If it's the player's own pit or capturing isn't applicable
+    // Sow one seed from the player's hand to the clicked pit
+    if (playerHand > 0) {
+        pits[currentPlayer][clickedPit % 8] += 1; // Add a seed to the clicked pit
+        return {
+            ...state,
+            playerHand: playerHand - 1, // Subtract one seed from player's hand
+            pits: [...pits], // Return updated pits
+        };
+    }
 
-// // Core function to handle a move in the game
-// export function makeMove(
-//   gameState: GameState,
-//   row: number,
-//   pitIndex: number
-// ): GameState {
-//   const currentPlayer = gameState.currentPlayer;
-//   const pit = gameState.board[row][pitIndex];
+    // Return unchanged state if the move is invalid
+    return state;
+};
 
-//   // Check if the move is valid (can't move from an empty pit)
-//   if (pit.seeds === 0) {
-//     throw new Error("Invalid move: Can't move from an empty pit.");
-//   }
-
-//   // Collect seeds and start sowing them around the board
-//   let seedsToSow = pit.seeds;
-//   pit.seeds = 0; // Empty the selected pit
-//   let currentPitIndex = pitIndex;
-//   let currentRow = row;
-
-//   while (seedsToSow > 0) {
-//     // Move to the next pit (wrap around within the row)
-//     currentPitIndex = (currentPitIndex + 1) % 8;
-
-//     // Sow seeds
-//     gameState.board[currentRow][currentPitIndex].seeds += 1;
-//     seedsToSow -= 1;
-//   }
-
-//   // After sowing, we can add additional rules like capturing here...
-
-//   // Switch turn to the next player
-//   gameState.currentPlayer = switchPlayer(gameState);
-
-//   // Check if the game is over after the move
-//   if (checkGameOver(gameState)) {
-//     gameState.status = "finished";
-//   }
-
-//   return gameState;
-// }
-
-// // Helper function to switch the current player
-// function switchPlayer(gameState: GameState): Player {
-//   return gameState.players.find(
-//     (player) => player.id !== gameState.currentPlayer.id
-//   )!;
-// }
-
-// // Function to check if the game is over
-// export function checkGameOver(gameState: GameState): boolean {
-//   // A simple condition could be when one side has no valid moves
-//   const noValidMovesForPlayer1 = gameState.board[1].every(
-//     (pit) => pit.seeds === 0
-//   );
-//   const noValidMovesForPlayer2 = gameState.board[2].every(
-//     (pit) => pit.seeds === 0
-//   );
-
-//   return noValidMovesForPlayer1 || noValidMovesForPlayer2;
-// }
+export { playerMove };
