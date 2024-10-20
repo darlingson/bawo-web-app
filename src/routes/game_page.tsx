@@ -6,6 +6,8 @@ import { playerMove } from '@/gameEngine';
 
 
 export default function GamePage() {
+  const [playMode, setPlayMode] = useState<'pick' | 'sow'>('pick');
+  
   const initialBoard = Array(4).fill(null).map(() => Array(8).fill(2));
   const [gameState, setGameState] = useState<GameState>({
     pits: initialBoard,
@@ -15,8 +17,25 @@ export default function GamePage() {
 
   const handlePitClick = (row: number, col: number) => {
     const clickedPit = row * 8 + col;
-    const newGameState = playerMove(gameState, clickedPit);
-    setGameState(newGameState);
+
+    if (playMode === 'pick') {
+      // Move seeds from clicked pit to player's hand
+      const seedsInPit = gameState.pits[row][col];
+      if (seedsInPit > 0) {
+        const newPits = [...gameState.pits];
+        newPits[row][col] = 0; // Remove seeds from the clicked pit
+        setGameState(prevState => ({
+          ...prevState,
+          pits: newPits,
+          playerHand: prevState.playerHand + seedsInPit, // Add seeds to player's hand
+        }));
+      }
+      // Switch to 'sow' mode
+      setPlayMode('sow');
+    } else if (playMode === 'sow') {
+      const newGameState = playerMove(gameState, clickedPit);
+      setGameState(newGameState);
+    }
   };
 
   return (
