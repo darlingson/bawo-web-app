@@ -1,45 +1,66 @@
 // Define the game state types
 type GameState = {
-    pits: number[][]; // 2D array representing pits for both players
-    playerHand: number; // Number of seeds in the player's hand
-    currentPlayer: number; // Current player's identifier (0 or 1)
+  pits: number[][]; // 2D array representing pits for both players
+  playerHand: number; // Number of seeds in the player's hand
+  currentPlayer: number; // Current player's identifier (0 or 1)
 };
 
 // Function to handle player's move
-const playerMove = (state: GameState, clickedPit: number): GameState => {
-    const { pits, playerHand, currentPlayer } = state;
+const playerMove = (
+  state: GameState,
+  clickedPitRow: number,
+  clickedPitCol: number
+): GameState => {
+  /*what this function will do:
+    it will check if the clicked pit is in the opponents side of the board. Note: the opponent's pit are the all pits in top 2 rows of the board
+    if the clicked pit has 2 or three seeds, then the seeds in the pit will be moved to the player's hand
+    if the pit has 0 or 1 seed then the function remove one seed from the player hand and put it into the pit
+    check if the playerhand still has seeds, if not change current player
+    */
 
-    // Check if clicked pit belongs to the current player (0 or 1)
-    const isOpponentPit = currentPlayer === 0 ? clickedPit > 7 : clickedPit < 8;
+  const newGameState: GameState = {
+    pits: state.pits.map((row) => [...row]),
+    currentPlayer: state.currentPlayer,
+    playerHand: state.playerHand,
+  };
 
-    if (isOpponentPit) {
-        // Check if the opponent's pit contains 2 or 3 seeds
-        const seedsInPit = pits[1 - currentPlayer][clickedPit % 8]; // Adjust for player index
-
-        if (seedsInPit === 2 || seedsInPit === 3) {
-            // Capture the seeds
-            pits[1 - currentPlayer][clickedPit % 8] = 0; // Empty the opponent's pit
-            return {
-                ...state,
-                playerHand: playerHand + seedsInPit, // Add captured seeds to player's hand
-                pits: [...pits], // Return updated pits
-            };
-        }
+  //checking if pit is for the opponent
+  const isOpp = clickedPitRow == 0 || clickedPitRow == 1;
+  if (isOpp) {
+    if (
+      newGameState.pits[clickedPitRow][clickedPitCol] == 2 ||
+      newGameState.pits[clickedPitRow][clickedPitCol] == 3
+    ) {
+      //capture branch
+      // Move seeds from clicked pit to player's hand
+      newGameState.playerHand =
+        newGameState.playerHand +
+        newGameState.pits[clickedPitRow][clickedPitCol]; // Add seeds to player's hand
+      newGameState.pits[clickedPitRow][clickedPitCol] = 0;
+      return newGameState;
+    } else {
+      //sow branch
+      newGameState.pits[clickedPitRow][clickedPitCol] =
+        newGameState.pits[clickedPitRow][clickedPitCol] + 1;
+      newGameState.playerHand = newGameState.playerHand - 1;
+      //check if player still has seeds, if not change current player
+      if (newGameState.playerHand == 0) {
+        newGameState.currentPlayer = newGameState.currentPlayer == 0 ? 1 : 0;
+      }
+      return newGameState;
     }
-
-    // If it's the player's own pit or capturing isn't applicable
-    // Sow one seed from the player's hand to the clicked pit
-    if (playerHand > 0) {
-        pits[currentPlayer][clickedPit % 8] += 1; // Add a seed to the clicked pit
-        return {
-            ...state,
-            playerHand: playerHand - 1, // Subtract one seed from player's hand
-            pits: [...pits], // Return updated pits
-        };
+  } else if (!isOpp) {
+    //if it is not opponent, then we should just sow
+    newGameState.pits[clickedPitRow][clickedPitCol] =
+      newGameState.pits[clickedPitRow][clickedPitCol] + 1;
+    newGameState.playerHand = newGameState.playerHand - 1;
+    //check if player still has seeds, if not change current player
+    if (newGameState.playerHand == 0) {
+      newGameState.currentPlayer = newGameState.currentPlayer == 0 ? 1 : 0;
     }
-
-    // Return unchanged state if the move is invalid
-    return state;
+    return newGameState;
+  }
+  return newGameState;
 };
 
 export { playerMove };

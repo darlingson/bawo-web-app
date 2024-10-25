@@ -16,7 +16,7 @@ export default function GamePage() {
   });
 
   const handlePitClick = (row: number, col: number) => {
-    const clickedPit = row * 8 + col;
+    
 
     if (playMode === 'pick') {
       // Move seeds from clicked pit to player's hand
@@ -33,7 +33,7 @@ export default function GamePage() {
       // Switch to 'sow' mode
       setPlayMode('sow');
     } else if (playMode === 'sow') {
-      const newGameState = playerMove(gameState, clickedPit);
+      const newGameState = playerMove(gameState, row, col);
       setGameState(newGameState);
     }
   };
