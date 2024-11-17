@@ -63,4 +63,41 @@ const playerMove = (
   return newGameState;
 };
 
-export { playerMove };
+function computerMove(gameState: GameState): GameState {
+  const { pits, currentPlayer } = gameState;
+
+  // Logic for selecting the first non-empty pit for the computer
+  for (let row = 0; row < pits.length; row++) {
+    for (let col = 0; col < pits[row].length; col++) {
+      if (pits[row][col] > 0 && currentPlayer === 1) {
+        // Move seeds from this pit
+        const seedsInPit = pits[row][col];
+        const newPits = [...pits];
+        newPits[row][col] = 0; // Empty the selected pit
+
+        // Update game state (example sowing logic)
+        let remainingSeeds = seedsInPit;
+        let currentCol = col;
+
+        while (remainingSeeds > 0) {
+          currentCol = (currentCol + 1) % pits[row].length; // Move to the next pit
+          newPits[row][currentCol]++;
+          remainingSeeds--;
+        }
+
+        return {
+          ...gameState,
+          pits: newPits,
+          currentPlayer: 0, // Switch back to the player
+          playerHand: 0, // Reset player's hand
+        };
+      }
+    }
+  }
+
+  // If no move possible, return the same game state
+  return gameState;
+}
+
+
+export { playerMove, computerMove };

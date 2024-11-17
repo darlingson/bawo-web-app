@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { GameState } from '@/interfaces/GameState';
-import { playerMove } from '@/gameEngine';
+import { playerMove,computerMove } from '@/gameEngine';
 
 
 export default function GamePage() {
@@ -14,6 +14,12 @@ export default function GamePage() {
     currentPlayer: 0,
     playerHand: 0,
   });
+    useEffect(() => {
+        if (gameState.currentPlayer === 1) {
+            const newGameState = computerMove(gameState);
+            setTimeout(() => setGameState(newGameState), 500);
+        }
+    }, [gameState]);
 
   const handlePitClick = (row: number, col: number) => {
     
@@ -23,11 +29,11 @@ export default function GamePage() {
       const seedsInPit = gameState.pits[row][col];
       if (seedsInPit > 0) {
         const newPits = [...gameState.pits];
-        newPits[row][col] = 0; // Remove seeds from the clicked pit
+        newPits[row][col] = 0;
         setGameState(prevState => ({
           ...prevState,
           pits: newPits,
-          playerHand: prevState.playerHand + seedsInPit, // Add seeds to player's hand
+          playerHand: prevState.playerHand + seedsInPit,
         }));
       }
       // Switch to 'sow' mode
